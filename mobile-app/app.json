@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "DismalCRM",
+    "slug": "dismalcrm-mobile",
+    "version": "0.3.0",
+    "orientation": "portrait",
+    "icon": "./assets/dismalcrm-icon.png",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "com.dismal.crm",
+      "versionCode": 5,
+      "softwareKeyboardLayoutMode": "resize",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/dismalcrm-icon.png",
+        "backgroundColor": "#F4F7FB"
+      },
+      "permissions": [
+        "CAMERA",
+        "READ_MEDIA_IMAGES",
+        "READ_MEDIA_VIDEO",
+        "POST_NOTIFICATIONS"
+      ]
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-notifications",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F4F7FB",
+          "image": "./assets/dismalcrm-icon.png",
+          "imageWidth": 160
+        }
+      ]
+    ]
+  }
+}

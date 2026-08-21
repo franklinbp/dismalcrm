@@ -1,0 +1,20 @@
+version: "3"
+
+networks:
+  whaticket:
+
+services:
+  backend:
+    environment:
+      - CHROME_WS=ws://chrome:3000
+
+  chrome:
+    image: browserless/chrome:latest
+    environment:
+      - MAX_CONCURRENT_SESSIONS=${MAX_CONCURRENT_SESSIONS:-1}
+      - CONNECTION_TIMEOUT=300000
+      - MAX_TIMEOUT=300000
+      - KEEP_ALIVE=true
+    restart: unless-stopped
+    networks:
+      - whaticket

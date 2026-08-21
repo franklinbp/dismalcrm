@@ -1,0 +1,11 @@
+node_modules/
+.expo/
+.expo-logs/
+dist/
+build/
+android/
+releases/*.apk
+.env
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

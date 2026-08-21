@@ -1,0 +1,13 @@
+.git
+*Dockerfile*
+*docker-compose*
+node_modules
+dist
+.wwebjs_auth
+.baileys_auth
+public
+coverage
+certs
+.env
+.env.*
+!.env.example

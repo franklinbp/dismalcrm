@@ -1,0 +1,44 @@
+{
+  "name": "dismalcrm-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Desktop application for the DismalCRM frontend",
+  "main": "src/main/main.js",
+  "author": "DismalCRM",
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron .",
+    "start": "electron .",
+    "dist:win": "electron-builder --win nsis",
+    "dist:linux": "electron-builder --linux AppImage deb",
+    "dist:appimage": "electron-builder --linux AppImage",
+    "dist:deb": "electron-builder --linux deb"
+  },
+  "dependencies": {
+    "electron-store": "^8.2.0"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.dismal.crm.desktop",
+    "productName": "DismalCRM Desktop",
+    "icon": "../frontend/public/dismalcrm-mark.png",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "linux": {
+      "category": "Network",
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    }
+  }
+}

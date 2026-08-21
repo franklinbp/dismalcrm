@@ -1,0 +1,12 @@
+services:
+  frontend:
+    networks:
+      internal:
+      easypanel:
+        aliases:
+          - dismalcrm-web
+
+networks:
+  easypanel:
+    external: true
+    name: ${EASYPANEL_PROXY_NETWORK:-easypanel}

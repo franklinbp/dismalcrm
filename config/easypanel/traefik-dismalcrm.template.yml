@@ -1,0 +1,33 @@
+http:
+  routers:
+    dismalcrm-http:
+      entryPoints:
+        - "__HTTP_ENTRYPOINT__"
+      rule: "Host(`__DOMAIN__`)"
+      middlewares:
+        - dismalcrm-force-https
+      service: dismalcrm-web
+
+    dismalcrm-https:
+      entryPoints:
+        - "__HTTPS_ENTRYPOINT__"
+      rule: "Host(`__DOMAIN__`)"
+      service: dismalcrm-web
+      tls:
+        certResolver: "__CERT_RESOLVER__"
+
+  middlewares:
+    dismalcrm-force-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+  services:
+    dismalcrm-web:
+      loadBalancer:
+        healthCheck:
+          path: /login
+          interval: 30s
+          timeout: 5s
+        servers:
+          - url: "http://dismalcrm-web:80"

@@ -1,0 +1,11 @@
+.docker/data/
+ssl/
+.env
+.wwebjs_auth
+.idea
+backend/dist/
+frontend/build/
+mobile-app/.expo/
+mobile-app/android/
+mobile-app/ios/
+desktop-app/dist/

@@ -1,0 +1,20 @@
+export const colors = {
+  background: "#F4F7FB",
+  surface: "#FFFFFF",
+  surfaceMuted: "#EDF2F7",
+  primary: "#17233D",
+  primarySoft: "#DDE7F2",
+  accent: "#108C88",
+  accentSoft: "#DDF4F1",
+  text: "#17233D",
+  textMuted: "#64748B",
+  border: "#D6E0EA",
+  danger: "#B42318",
+  dangerSoft: "#FEF0EE",
+  dangerBorder: "#F4C7C2",
+  success: "#087A60",
+  warning: "#9A6700",
+  unread: "#E7F7F4",
+  bubbleMine: "#DDF4F1",
+  bubbleOther: "#FFFFFF"
+};

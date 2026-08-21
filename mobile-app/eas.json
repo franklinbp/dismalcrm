@@ -1,0 +1,37 @@
+{
+  "cli": {
+    "version": ">= 13.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://dismal.vip/api",
+        "EXPO_PUBLIC_SOCKET_URL": "https://dismal.vip"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://dismal.vip/api",
+        "EXPO_PUBLIC_SOCKET_URL": "https://dismal.vip"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://dismal.vip/api",
+        "EXPO_PUBLIC_SOCKET_URL": "https://dismal.vip"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  }
+}

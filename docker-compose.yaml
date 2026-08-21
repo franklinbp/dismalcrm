@@ -1,0 +1,112 @@
+  networks:
+    internal:
+
+  services:
+    backend:
+      build:
+        context: ./backend
+        dockerfile: ./Dockerfile
+      environment:
+        - DB_HOST=mysql
+        - DB_USER=root
+        - DB_PASS=${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD required}
+        - DB_NAME=${MYSQL_DATABASE:-dismalcrm}
+        - ENABLE_CAMPAIGNS=${ENABLE_CAMPAIGNS:-true}
+        - CAMPAIGN_WORKER_ENABLED=${CAMPAIGN_WORKER_ENABLED:-true}
+        - CAMPAIGN_WORKER_INTERVAL_MS=${CAMPAIGN_WORKER_INTERVAL_MS:-5000}
+        - CAMPAIGN_WORKER_BATCH_SIZE=${CAMPAIGN_WORKER_BATCH_SIZE:-50}
+        - CAMPAIGN_WORKER_MAX_ATTEMPTS=${CAMPAIGN_WORKER_MAX_ATTEMPTS:-3}
+        - CAMPAIGN_RETRY_BASE_MS=${CAMPAIGN_RETRY_BASE_MS:-2000}
+        - CAMPAIGN_RETRY_MAX_MS=${CAMPAIGN_RETRY_MAX_MS:-60000}
+        - JWT_SECRET=${JWT_SECRET:?JWT_SECRET required}
+        - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET required}
+        - COOKIE_SECURE=${COOKIE_SECURE:-true}
+        - BACKEND_URL=${BACKEND_URL:-http://localhost}
+        - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3002}
+        - PROXY_PORT=${PROXY_PORT:-8080}
+        - CHROME_ARGS=${CHROME_ARGS:---no-sandbox --disable-setuid-sandbox}
+        - META_VERIFY_TOKEN=${META_VERIFY_TOKEN}
+        - META_APP_ID=${META_APP_ID}
+        - META_APP_SECRET=${META_APP_SECRET}
+        - META_GRAPH_VERSION=${META_GRAPH_VERSION:-v13.0}
+        - BOT_RUNTIME_ENABLED=${BOT_RUNTIME_ENABLED:-false}
+        - APP_COUNTRY=${APP_COUNTRY:-EC}
+        - WHATSAPP_ALLOWED_COUNTRY_CODE=${WHATSAPP_ALLOWED_COUNTRY_CODE:-593}
+        - WHATSAPP_MAX_CONNECTIONS=${WHATSAPP_MAX_CONNECTIONS:-2}
+        - BOOTSTRAP_COMPANY_NAME=${BOOTSTRAP_COMPANY_NAME:-Dismal}
+        - BOOTSTRAP_ADMIN_NAME=${BOOTSTRAP_ADMIN_NAME:-Administrador Dismal}
+        - BOOTSTRAP_ADMIN_EMAIL=${BOOTSTRAP_ADMIN_EMAIL:-admin@dismal.vip}
+        - BOOTSTRAP_ADMIN_PASSWORD=${BOOTSTRAP_ADMIN_PASSWORD:-}
+        - DB_TIMEZONE=${DB_TIMEZONE:--05:00}
+        - REDIS_URI=redis://redis:6379
+        - REDIS_OPT_LIMITER_MAX=1
+        - REDIS_OPT_LIMITER_DURATION=3000
+      ports:
+        - 127.0.0.1:${BACKEND_PORT:-8081}:3000
+      volumes:
+        - ./backend/public/:/usr/src/app/public/
+        - ./backend/.wwebjs_auth/:/usr/src/app/.wwebjs_auth/
+      restart: unless-stopped
+      depends_on:
+        - mysql
+        - redis
+      healthcheck:
+        test:
+          - CMD
+          - node
+          - -e
+          - "http=require('http');http.get('http://127.0.0.1:3000/healthz',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+        interval: 30s
+        timeout: 5s
+        retries: 3
+        start_period: 20s
+      networks:
+        internal:
+          aliases:
+            - dismalcrm-backend-internal
+
+    frontend:
+      ports:
+        - 127.0.0.1:${FRONTEND_PORT:-7001}:80
+      build:
+        context: ./frontend
+        dockerfile: ./Dockerfile
+      environment:
+        - URL_BACKEND=dismalcrm-backend-internal:3000
+        - VITE_BACKEND_URL=${VITE_BACKEND_URL:-/api}
+        - VITE_SALES_URL=${VITE_SALES_URL:-}
+        - FRONTEND_SERVER_NAME=${FRONTEND_SERVER_NAME}
+        - BACKEND_SERVER_NAME=${BACKEND_SERVER_NAME}
+      volumes:
+        - ./ssl/certs/:/etc/nginx/ssl/
+        - ./ssl/www/:/var/www/letsencrypt/
+      restart: unless-stopped
+      depends_on:
+        - backend
+      healthcheck:
+        test: ["CMD-SHELL", "curl -fsS http://localhost/ || exit 1"]
+        interval: 30s
+        timeout: 5s
+        retries: 3
+        start_period: 20s
+      networks:
+        - internal
+
+    mysql:
+      image: ${MYSQL_ENGINE:-mariadb}:${MYSQL_VERSION:-10.6}
+      command: --character-set-server=utf8mb4 --collation-server=utf8mb4_bin
+      volumes:
+        - ./.docker/data/:/var/lib/mysql
+      environment:
+        - MYSQL_DATABASE=${MYSQL_DATABASE:-dismalcrm}
+        - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD required}
+        - TZ=${TZ:-America/Guayaquil}
+      restart: always
+      networks:
+        - internal
+
+    redis:
+      image: redis:alpine
+      restart: always
+      networks:
+        - internal
