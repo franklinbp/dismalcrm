@@ -1,5 +1,4 @@
 import {
-  getAllowedWhatsappCountryCodes,
   getWhatsappConnectionLimit,
   isAllowedWhatsappNumber
 } from "../../../services/WhatsappService/WhatsappConnectionPolicy";
@@ -25,15 +24,6 @@ describe("WhatsappConnectionPolicy", () => {
 
     expect(isAllowedWhatsappNumber("51999999999")).toBe(false);
     expect(isAllowedWhatsappNumber("593123")).toBe(false);
-  });
-
-  it("accepts an explicit list of country codes", () => {
-    process.env.WHATSAPP_ALLOWED_COUNTRY_CODE = "593,51";
-
-    expect(getAllowedWhatsappCountryCodes()).toEqual(["593", "51"]);
-    expect(isAllowedWhatsappNumber("+593 99 255 4676")).toBe(true);
-    expect(isAllowedWhatsappNumber("+51 999 999 999")).toBe(true);
-    expect(isAllowedWhatsappNumber("+57 300 000 0000")).toBe(false);
   });
 
   it("uses two connections as the safe default", () => {

@@ -315,7 +315,7 @@ export const runCampaignWorkerOnce = async () => {
       await updateCampaignCompletion(campaign.id);
     }
   } catch (err) {
-    logger.error("Campaign worker error", err);
+    logger.error({ err }, "Campaign worker error");
   }
 };
 

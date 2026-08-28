@@ -8,7 +8,7 @@ import AppError from "../errors/AppError";
 import { logger } from "../utils/logger";
 import { handleMessage } from "../services/WbotServices/wbotMessageListener";
 import {
-  getAllowedWhatsappCountryCodes,
+  getAllowedWhatsappCountryCode,
   isAllowedWhatsappNumber
 } from "../services/WhatsappService/WhatsappConnectionPolicy";
 
@@ -60,7 +60,11 @@ const syncUnreadMessages = async (wbot: Session) => {
     /* eslint-disable no-restricted-syntax */
     /* eslint-disable no-await-in-loop */
     for (const chat of chats) {
-      if (chat.unreadCount > 0) {
+      if (!chat.unreadCount || chat.unreadCount <= 0) {
+        continue;
+      }
+
+      try {
         const unreadMessages = await chat.fetchMessages({
           limit: chat.unreadCount
         });
@@ -70,10 +74,20 @@ const syncUnreadMessages = async (wbot: Session) => {
         }
 
         await chat.sendSeen();
+      } catch (err) {
+        logger.warn(
+          {
+            err,
+            chatId: chat.id?._serialized,
+            chatName: chat.name,
+            unreadCount: chat.unreadCount
+          },
+          "Could not sync unread WhatsApp chat"
+        );
       }
     }
   } catch (err) {
-    logger.error(`Error syncing unread WhatsApp messages: ${err}`);
+    logger.warn({ err }, "Could not list unread WhatsApp chats");
   }
 };
 
@@ -154,12 +168,12 @@ export const initWbot = async (whatsapp: Whatsapp): Promise<Session> => {
 
         const connectedNumber = wbot.info?.wid?.user || "";
         if (!isAllowedWhatsappNumber(connectedNumber)) {
-          const allowedCountryCodes = getAllowedWhatsappCountryCodes();
+          const allowedCountryCode = getAllowedWhatsappCountryCode();
           logger.warn(
             {
               sessionId: whatsapp.id,
               sessionName,
-              allowedCountryCodes
+              allowedCountryCode
             },
             "Rejected WhatsApp session from a non-authorized country"
           );

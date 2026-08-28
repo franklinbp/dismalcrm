@@ -158,12 +158,14 @@ printf 'Verificando servicios internos...\n'
 compose ps
 wait_for_http frontend http://127.0.0.1/login "el frontend"
 wait_for_http backend http://127.0.0.1:3000/healthz "el backend"
+wait_for_http frontend http://127.0.0.1/api/healthz "la API interna desde el frontend"
 
-# Nginx resolves the backend container address when it starts. Recreate the
-# frontend so it gets a clean configuration and discards the stale backend IP.
+# Recreate the frontend after backend updates so Nginx renders its runtime
+# environment and exposes the internal API route through /api.
 printf 'Actualizando la conexion interna del frontend...\n'
 compose up -d --force-recreate --no-deps frontend
 wait_for_http frontend http://127.0.0.1/login "el frontend actualizado"
+wait_for_http frontend http://127.0.0.1/api/healthz "la API actualizada desde el frontend"
 
 printf 'Instalando rutas HTTPS de Traefik...\n'
 mkdir -p "$TRAEFIK_HOST_CONFIG_DIR"
