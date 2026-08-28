@@ -7,7 +7,12 @@ import { getIO } from "../libs/socket";
 
 const store = async (req: Request, res: Response): Promise<Response> => {
   const { whatsappId } = req.params;
-  const whatsapp = await ShowWhatsAppService(whatsappId);
+  let whatsapp = await ShowWhatsAppService(whatsappId);
+
+  if (!whatsapp.companyId) {
+    await whatsapp.update({ companyId: req.user.companyId });
+    whatsapp = await ShowWhatsAppService(whatsappId);
+  }
 
   // Innovación: Notificar al frontend que el proceso de apertura ha comenzado
   getIO().emit("whatsapp", {
@@ -25,7 +30,8 @@ const update = async (req: Request, res: Response): Promise<Response> => {
 
   const { whatsapp } = await UpdateWhatsAppService({
     whatsappId,
-    whatsappData: { session: "" }
+    whatsappData: { session: "" },
+    companyId: req.user.companyId
   });
 
   // Innovación: Notificar al frontend que el proceso de actualización ha comenzado

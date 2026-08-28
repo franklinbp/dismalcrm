@@ -4,6 +4,7 @@ import { wbotMessageListener } from "./wbotMessageListener";
 import { getIO } from "../../libs/socket";
 import wbotMonitor from "./wbotMonitor";
 import { logger } from "../../utils/logger";
+import EnsureWhatsappCompanyService from "../WhatsappService/EnsureWhatsappCompanyService";
 
 const startingSessions = new Set<number>();
 
@@ -15,22 +16,24 @@ export const StartWhatsAppSession = async (
   }
 
   startingSessions.add(whatsapp.id);
-
-  await whatsapp.update({ status: "OPENING" });
-
-  const io = getIO();
-  io.emit("whatsappSession", {
-    action: "update",
-    session: whatsapp
-  });
+  let sessionWhatsapp = whatsapp;
 
   try {
-    const wbot = await initWbot(whatsapp);
+    sessionWhatsapp = await EnsureWhatsappCompanyService(whatsapp);
+    await sessionWhatsapp.update({ status: "OPENING" });
+
+    const io = getIO();
+    io.emit("whatsappSession", {
+      action: "update",
+      session: sessionWhatsapp
+    });
+
+    const wbot = await initWbot(sessionWhatsapp);
     wbotMessageListener(wbot);
-    wbotMonitor(wbot, whatsapp);
+    wbotMonitor(wbot, sessionWhatsapp);
   } catch (err) {
     logger.error(err);
-    await whatsapp.update({ status: "DISCONNECTED", qrcode: "" });
+    await sessionWhatsapp.update({ status: "DISCONNECTED", qrcode: "" });
   } finally {
     startingSessions.delete(whatsapp.id);
   }

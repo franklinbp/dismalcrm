@@ -8,17 +8,32 @@ export const getWhatsappConnectionLimit = (): number => {
 export const getAllowedWhatsappCountryCode = (): string =>
   digitsOnly(process.env.WHATSAPP_ALLOWED_COUNTRY_CODE || "593");
 
+export const getAllowedWhatsappCountryCodes = (): string[] => {
+  const configured = process.env.WHATSAPP_ALLOWED_COUNTRY_CODE || "593";
+
+  return configured
+    .split(",")
+    .map(countryCode => digitsOnly(countryCode))
+    .filter(Boolean);
+};
+
 export const isAllowedWhatsappNumber = (number?: string): boolean => {
   const normalized = digitsOnly(number);
-  const countryCode = getAllowedWhatsappCountryCode();
+  const countryCodes = getAllowedWhatsappCountryCodes();
 
-  if (!normalized || !countryCode || !normalized.startsWith(countryCode)) {
+  if (!normalized || countryCodes.length === 0) {
     return false;
   }
 
-  if (countryCode === "593") {
-    return /^593\d{9}$/.test(normalized);
-  }
+  return countryCodes.some(countryCode => {
+    if (!normalized.startsWith(countryCode)) {
+      return false;
+    }
 
-  return true;
+    if (countryCode === "593") {
+      return /^593\d{9}$/.test(normalized);
+    }
+
+    return true;
+  });
 };

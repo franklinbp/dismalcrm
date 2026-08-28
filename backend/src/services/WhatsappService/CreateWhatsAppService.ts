@@ -7,6 +7,7 @@ import { getWhatsappConnectionLimit } from "./WhatsappConnectionPolicy";
 
 interface Request {
   name: string;
+  companyId: number;
   queueIds?: number[];
   greetingMessage?: string;
   farewellMessage?: string;
@@ -26,6 +27,7 @@ interface Response {
 
 const CreateWhatsAppService = async ({
   name,
+  companyId,
   status = "OPENING",
   queueIds = [],
   greetingMessage,
@@ -96,6 +98,7 @@ const CreateWhatsAppService = async ({
   const whatsapp = await Whatsapp.create(
     {
       name,
+      companyId,
       status: channel === "whatsapp" ? status : status || "CONNECTED",
       greetingMessage,
       farewellMessage,

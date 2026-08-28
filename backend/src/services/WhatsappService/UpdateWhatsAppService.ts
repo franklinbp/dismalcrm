@@ -24,6 +24,7 @@ interface WhatsappData {
 interface Request {
   whatsappData: WhatsappData;
   whatsappId: string;
+  companyId?: number;
 }
 
 interface Response {
@@ -33,7 +34,8 @@ interface Response {
 
 const UpdateWhatsAppService = async ({
   whatsappData,
-  whatsappId
+  whatsappId,
+  companyId
 }: Request): Promise<Response> => {
   const schema = Yup.object().shape({
     name: Yup.string().min(2),
@@ -91,7 +93,8 @@ const UpdateWhatsAppService = async ({
     facebookUserToken,
     tokenMeta,
     facebookUserId,
-    facebookPageUserId
+    facebookPageUserId,
+    companyId: whatsapp.companyId || companyId
   });
 
   if (nextChannel === "whatsapp") {

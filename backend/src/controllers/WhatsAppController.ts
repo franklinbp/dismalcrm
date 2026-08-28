@@ -47,6 +47,7 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
 
   const { whatsapp, oldDefaultWhatsapp } = await CreateWhatsAppService({
     name,
+    companyId: req.user.companyId,
     status,
     isDefault,
     greetingMessage,
@@ -100,7 +101,8 @@ export const update = async (
 
   const { whatsapp, oldDefaultWhatsapp } = await UpdateWhatsAppService({
     whatsappData,
-    whatsappId
+    whatsappId,
+    companyId: req.user.companyId
   });
 
   const io = getIO();

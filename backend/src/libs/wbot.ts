@@ -8,7 +8,7 @@ import AppError from "../errors/AppError";
 import { logger } from "../utils/logger";
 import { handleMessage } from "../services/WbotServices/wbotMessageListener";
 import {
-  getAllowedWhatsappCountryCode,
+  getAllowedWhatsappCountryCodes,
   isAllowedWhatsappNumber
 } from "../services/WhatsappService/WhatsappConnectionPolicy";
 
@@ -154,12 +154,12 @@ export const initWbot = async (whatsapp: Whatsapp): Promise<Session> => {
 
         const connectedNumber = wbot.info?.wid?.user || "";
         if (!isAllowedWhatsappNumber(connectedNumber)) {
-          const allowedCountryCode = getAllowedWhatsappCountryCode();
+          const allowedCountryCodes = getAllowedWhatsappCountryCodes();
           logger.warn(
             {
               sessionId: whatsapp.id,
               sessionName,
-              allowedCountryCode
+              allowedCountryCodes
             },
             "Rejected WhatsApp session from a non-authorized country"
           );
