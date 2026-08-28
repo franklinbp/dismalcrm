@@ -62,7 +62,6 @@ const useStyles = makeStyles((theme) => ({
 const COUNTRY_OPTIONS = [
   { value: "", label: "Todos los paises" },
   { value: "EC", label: "Ecuador" },
-  { value: "PE", label: "Peru" },
 ];
 
 const countryLabel = countryCode =>

@@ -21,7 +21,6 @@ import toastError from "../../../errors/toastError";
 const COUNTRY_OPTIONS = [
   { value: "", label: "Todos los paises" },
   { value: "EC", label: "Ecuador" },
-  { value: "PE", label: "Peru" },
 ];
 
 const countryLabel = countryCode =>

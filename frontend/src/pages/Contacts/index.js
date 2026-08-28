@@ -104,6 +104,7 @@ const Contacts = () => {
   const [deletingContact, setDeletingContact] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [hasMore, setHasMore] = useState(false);
+  const [reloadCounter, setReloadCounter] = useState(0);
 
   useEffect(() => {
     dispatch({ type: "RESET" });
@@ -123,12 +124,13 @@ const Contacts = () => {
           setLoading(false);
         } catch (err) {
           toastError(err);
+          setLoading(false);
         }
       };
       fetchContacts();
     }, 500);
     return () => clearTimeout(delayDebounceFn);
-  }, [searchParam, pageNumber]);
+  }, [searchParam, pageNumber, reloadCounter]);
 
   useEffect(() => {
     const socket = openSocket();
@@ -215,12 +217,32 @@ const Contacts = () => {
     setPageNumber(1);
   };
 
+  const refreshFirstPage = () => {
+    dispatch({ type: "RESET" });
+    setHasMore(false);
+    setPageNumber(1);
+    setReloadCounter((prev) => prev + 1);
+  };
+
   const handleimportContact = async () => {
+    setLoading(true);
     try {
-      await api.post("/contacts/import");
-      history.go(0);
+      const { data } = await api.post("/contacts/import");
+      const created = data.created || 0;
+      const updated = data.updated || 0;
+      const existing = data.existing || 0;
+      const skipped = data.skipped || 0;
+
+      toast.success(
+        `Importacion completada: ${created} nuevos, ${updated} actualizados, ${existing} existentes y ${skipped} omitidos.`
+      );
+      setSearchParam("");
+      refreshFirstPage();
     } catch (err) {
       toastError(err);
+    } finally {
+      setLoading(false);
+      setConfirmOpen(false);
     }
   };
 
@@ -284,6 +306,7 @@ const Contacts = () => {
             variant="contained"
             color="primary"
             onClick={(e) => setConfirmOpen(true)}
+            disabled={loading}
           >
             {i18n.t("contacts.buttons.import")}
           </Button>

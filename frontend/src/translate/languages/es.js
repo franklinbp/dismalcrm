@@ -131,7 +131,7 @@ const messages = {
           deleteMessage:
             "Estas seguro que deseas borrar este contacto? Todos los mensajes relacionados se perderan.",
           importMessage:
-            "Quieres importar todos los contactos desde tu telefono?",
+            "Quieres importar los contactos con conversaciones visibles en WhatsApp?",
         },
         buttons: {
           import: "Importar Contactos",
@@ -660,10 +660,14 @@ const messages = {
         ERR_NO_CONTACT_FOUND: "No se encontro ningun contacto con este ID.",
         ERR_NO_TICKET_FOUND: "No se encontro ningun mensaje con este ID.",
         ERR_WAPP_COMPANY_REQUIRED: "La conexion de WhatsApp no tiene una empresa asignada.",
+        ERR_WAPP_COMPANY_NOT_ASSIGNED:
+          "La conexion de WhatsApp no tiene empresa asignada.",
         ERR_WAPP_CONNECTION_LIMIT:
           "DismalCRM permite un maximo de dos conexiones de WhatsApp.",
         ERR_WAPP_COUNTRY_NOT_ALLOWED:
           "Esta instancia acepta unicamente numeros de WhatsApp de Ecuador.",
+        ERR_WAPP_IMPORT_CONTACTS:
+          "No se pudieron importar los contactos del telefono. Verifique que WhatsApp este conectado.",
         ERR_NO_USER_FOUND: "No se encontro ningun usuario con este ID.",
         ERR_NO_WAPP_FOUND: "No se encontro WhatsApp con este ID.",
         ERR_CREATING_MESSAGE: "Error al crear el mensaje en la base de datos.",
