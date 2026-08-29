@@ -5,6 +5,9 @@ interface Request {
   searchParam?: string;
   pageNumber?: string;
   countryCode?: string;
+  category?: string;
+  source?: string;
+  segment?: string;
 }
 
 interface Response {
@@ -16,10 +19,16 @@ interface Response {
 const ListCampaignClientService = async ({
   searchParam = "",
   pageNumber = "1",
-  countryCode = ""
+  countryCode = "",
+  category = "",
+  source = "",
+  segment = ""
 }: Request): Promise<Response> => {
   const normalized = searchParam.toLowerCase().trim();
   const normalizedCountry = countryCode.trim().toUpperCase();
+  const normalizedCategory = category.toLowerCase().trim();
+  const normalizedSource = source.toLowerCase().trim();
+  const normalizedSegment = segment.toLowerCase().trim();
   const filters = [];
 
   if (normalized) {
@@ -44,6 +53,21 @@ const ListCampaignClientService = async ({
             Sequelize.fn("LOWER", Sequelize.col("email")),
             "LIKE",
             `%${normalized}%`
+          ),
+          Sequelize.where(
+            Sequelize.fn("LOWER", Sequelize.col("category")),
+            "LIKE",
+            `%${normalized}%`
+          ),
+          Sequelize.where(
+            Sequelize.fn("LOWER", Sequelize.col("source")),
+            "LIKE",
+            `%${normalized}%`
+          ),
+          Sequelize.where(
+            Sequelize.fn("LOWER", Sequelize.col("segment")),
+            "LIKE",
+            `%${normalized}%`
           )
         ]
       });
@@ -51,6 +75,36 @@ const ListCampaignClientService = async ({
 
   if (normalizedCountry) {
     filters.push({ countryCode: normalizedCountry });
+  }
+
+  if (normalizedCategory) {
+    filters.push(
+      Sequelize.where(
+        Sequelize.fn("LOWER", Sequelize.col("category")),
+        "LIKE",
+        `%${normalizedCategory}%`
+      )
+    );
+  }
+
+  if (normalizedSource) {
+    filters.push(
+      Sequelize.where(
+        Sequelize.fn("LOWER", Sequelize.col("source")),
+        "LIKE",
+        `%${normalizedSource}%`
+      )
+    );
+  }
+
+  if (normalizedSegment) {
+    filters.push(
+      Sequelize.where(
+        Sequelize.fn("LOWER", Sequelize.col("segment")),
+        "LIKE",
+        `%${normalizedSegment}%`
+      )
+    );
   }
 
   const whereCondition = filters.length > 0 ? { [Op.and]: filters } : {};

@@ -6,20 +6,28 @@ import ListCampaignClientService from "../services/CampaignClientServices/ListCa
 import ShowCampaignClientService from "../services/CampaignClientServices/ShowCampaignClientService";
 import UpdateCampaignClientService from "../services/CampaignClientServices/UpdateCampaignClientService";
 import DeleteCampaignClientService from "../services/CampaignClientServices/DeleteCampaignClientService";
+import ImportCampaignClientsService from "../services/CampaignClientServices/ImportCampaignClientsService";
 
 type IndexQuery = {
   searchParam: string;
   pageNumber: string;
   countryCode: string;
+  category: string;
+  source: string;
+  segment: string;
 };
 
 export const index = async (req: Request, res: Response): Promise<Response> => {
-  const { searchParam, pageNumber, countryCode } = req.query as IndexQuery;
+  const { searchParam, pageNumber, countryCode, category, source, segment } =
+    req.query as IndexQuery;
 
   const { clients, count, hasMore } = await ListCampaignClientService({
     searchParam,
     pageNumber,
-    countryCode
+    countryCode,
+    category,
+    source,
+    segment
   });
 
   return res.json({ clients, count, hasMore });
@@ -34,11 +42,13 @@ export const show = async (req: Request, res: Response): Promise<Response> => {
 export const store = async (req: Request, res: Response): Promise<Response> => {
   const schema = Yup.object().shape({
     name: Yup.string().required(),
-    tradeName: Yup.string(),
+    tradeName: Yup.string().nullable(),
     phone: Yup.string().required(),
-    countryCode: Yup.string(),
+    countryCode: Yup.string().nullable(),
     email: Yup.string().email().nullable(),
-    category: Yup.string()
+    category: Yup.string().nullable(),
+    source: Yup.string().nullable(),
+    segment: Yup.string().nullable()
   });
 
   try {
@@ -56,11 +66,13 @@ export const update = async (req: Request, res: Response): Promise<Response> => 
 
   const schema = Yup.object().shape({
     name: Yup.string(),
-    tradeName: Yup.string(),
-    phone: Yup.string(),
-    countryCode: Yup.string(),
+    tradeName: Yup.string().nullable(),
+    phone: Yup.string().nullable(),
+    countryCode: Yup.string().nullable(),
     email: Yup.string().email().nullable(),
-    category: Yup.string()
+    category: Yup.string().nullable(),
+    source: Yup.string().nullable(),
+    segment: Yup.string().nullable()
   });
 
   try {
@@ -80,4 +92,22 @@ export const remove = async (req: Request, res: Response): Promise<Response> => 
   const { clientId } = req.params;
   await DeleteCampaignClientService(clientId);
   return res.status(200).json({ message: "Client deleted" });
+};
+
+export const importClients = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { countryCode, source, segment, category } = req.body;
+  const file = req.file as Express.Multer.File | undefined;
+
+  const summary = await ImportCampaignClientsService({
+    file,
+    defaultCountryCode: countryCode || "EC",
+    source,
+    segment,
+    category
+  });
+
+  return res.status(200).json(summary);
 };

@@ -33,6 +33,12 @@ class CampaignClient extends Model<CampaignClient> {
   @Column
   category?: string;
 
+  @Column
+  source?: string;
+
+  @Column
+  segment?: string;
+
   @CreatedAt
   createdAt: Date;
 

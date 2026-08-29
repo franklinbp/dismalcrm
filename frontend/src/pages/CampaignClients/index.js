@@ -15,7 +15,8 @@ import {
   DialogTitle,
   MenuItem,
   TextField,
-  Typography
+  Typography,
+  CircularProgress
 } from "@material-ui/core";
 import { Edit, DeleteOutline } from "@material-ui/icons";
 
@@ -40,6 +41,7 @@ const useStyles = makeStyles((theme) => ({
     alignItems: "center",
     justifyContent: "space-between",
     gap: theme.spacing(2),
+    flexWrap: "wrap",
     marginBottom: theme.spacing(1),
     position: "sticky",
     top: 0,
@@ -50,6 +52,14 @@ const useStyles = makeStyles((theme) => ({
   searchInput: {
     maxWidth: 360,
     flex: 1,
+  },
+  filterInput: {
+    minWidth: 150,
+  },
+  fileHelper: {
+    color: theme.palette.text.secondary,
+    fontSize: 12,
+    marginTop: theme.spacing(1),
   },
   footer: {
     display: "flex",
@@ -76,7 +86,9 @@ const ClientModal = ({ open, onClose, onSave, initialData }) => {
     phone: "",
     countryCode: "EC",
     email: "",
-    category: ""
+    category: "",
+    source: "",
+    segment: ""
   });
 
   useEffect(() => {
@@ -87,7 +99,9 @@ const ClientModal = ({ open, onClose, onSave, initialData }) => {
         phone: initialData.phoneE164 || "",
         countryCode: initialData.countryCode || "EC",
         email: initialData.email || "",
-        category: initialData.category || ""
+        category: initialData.category || "",
+        source: initialData.source || "",
+        segment: initialData.segment || ""
       });
     } else if (open) {
       setForm({
@@ -96,7 +110,9 @@ const ClientModal = ({ open, onClose, onSave, initialData }) => {
         phone: "",
         countryCode: "EC",
         email: "",
-        category: ""
+        category: "",
+        source: "",
+        segment: ""
       });
     }
   }, [initialData, open]);
@@ -113,7 +129,9 @@ const ClientModal = ({ open, onClose, onSave, initialData }) => {
       phone: form.phone,
       countryCode: form.countryCode || null,
       email: form.email || null,
-      category: form.category || null
+      category: form.category || null,
+      source: form.source || null,
+      segment: form.segment || null
     });
   };
 
@@ -178,6 +196,24 @@ const ClientModal = ({ open, onClose, onSave, initialData }) => {
           value={form.category}
           onChange={handleChange}
         />
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Origen"
+          name="source"
+          value={form.source}
+          onChange={handleChange}
+          helperText="Ejemplo: Gmail principal, Gmail ventas o WhatsApp."
+        />
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Segmento"
+          name="segment"
+          value={form.segment}
+          onChange={handleChange}
+          helperText="Ejemplo: Mayoristas, clientes finales o prospectos."
+        />
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="secondary">
@@ -191,24 +227,129 @@ const ClientModal = ({ open, onClose, onSave, initialData }) => {
   );
 };
 
+const ImportClientsModal = ({ open, onClose, onImport, loading }) => {
+  const classes = useStyles();
+  const [form, setForm] = useState({
+    countryCode: "EC",
+    source: "",
+    segment: "",
+    category: ""
+  });
+  const [file, setFile] = useState(null);
+
+  useEffect(() => {
+    if (!open) {
+      setForm({ countryCode: "EC", source: "", segment: "", category: "" });
+      setFile(null);
+    }
+  }, [open]);
+
+  const handleChange = event => {
+    const { name, value } = event.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = () => {
+    onImport({ ...form, file });
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>Importar clientes desde CSV</DialogTitle>
+      <DialogContent>
+        <TextField
+          select
+          fullWidth
+          margin="dense"
+          label="Pais por defecto"
+          name="countryCode"
+          value={form.countryCode}
+          onChange={handleChange}
+        >
+          {COUNTRY_OPTIONS.filter(country => country.value).map(country => (
+            <MenuItem key={country.value} value={country.value}>
+              {country.label}
+            </MenuItem>
+          ))}
+        </TextField>
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Origen"
+          name="source"
+          value={form.source}
+          onChange={handleChange}
+          helperText="Ejemplo: Gmail Franklin, Gmail ventas o base antigua."
+        />
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Segmento"
+          name="segment"
+          value={form.segment}
+          onChange={handleChange}
+          helperText="Ejemplo: Mayoristas, finales, prospectos Meta."
+        />
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Categoria"
+          name="category"
+          value={form.category}
+          onChange={handleChange}
+          helperText="Etiqueta comercial adicional."
+        />
+        <input
+          type="file"
+          accept=".csv,.txt"
+          onChange={event => setFile(event.target.files?.[0] || null)}
+        />
+        <div className={classes.fileHelper}>
+          Columnas aceptadas: phone,name,email,empresa,pais,origen,segmento,categoria.
+          Tambien reconoce CSV exportado desde Google Contacts.
+        </div>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} color="secondary" disabled={loading}>
+          Cancelar
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          color="primary"
+          variant="contained"
+          disabled={!file || loading}
+        >
+          {loading ? <CircularProgress size={18} /> : "Importar"}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
 const CampaignClients = () => {
   const classes = useStyles();
 
   const [clients, setClients] = useState([]);
   const [clientModalOpen, setClientModalOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [searchParam, setSearchParam] = useState("");
   const [countryCode, setCountryCode] = useState("");
+  const [source, setSource] = useState("");
+  const [segment, setSegment] = useState("");
+  const [category, setCategory] = useState("");
   const [pageNumber, setPageNumber] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const { data } = await api.get("/campaign-clients", {
-        params: { searchParam, pageNumber, countryCode }
+        params: { searchParam, pageNumber, countryCode, source, segment, category }
       });
       const nextClients = data.clients || [];
       setClients((prev) =>
@@ -225,7 +366,7 @@ const CampaignClients = () => {
 
   useEffect(() => {
     fetchData();
-  }, [pageNumber, searchParam, countryCode]);
+  }, [pageNumber, searchParam, countryCode, source, segment, category, refreshKey]);
 
   const handleSearch = (event) => {
     setSearchParam(event.target.value);
@@ -234,6 +375,11 @@ const CampaignClients = () => {
 
   const handleCountryFilter = event => {
     setCountryCode(event.target.value);
+    setPageNumber(1);
+  };
+
+  const handleTextFilter = setter => event => {
+    setter(event.target.value);
     setPageNumber(1);
   };
 
@@ -291,11 +437,51 @@ const CampaignClients = () => {
     }
   };
 
+  const handleImportClients = async ({ file, countryCode, source, segment, category }) => {
+    if (!file) {
+      toast.error("Selecciona un archivo CSV.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("countryCode", countryCode || "EC");
+    formData.append("source", source || "");
+    formData.append("segment", segment || "");
+    formData.append("category", category || "");
+
+    setImportLoading(true);
+    try {
+      const { data } = await api.post("/campaign-clients/import", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+
+      toast.success(
+        `Importacion completada: ${data.created || 0} nuevos, ${data.updated || 0} actualizados, ${data.existing || 0} existentes, ${data.skipped || 0} omitidos.`
+      );
+      setImportModalOpen(false);
+      setPageNumber(1);
+      setClients([]);
+      setRefreshKey(prev => prev + 1);
+    } catch (err) {
+      toastError(err);
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
   return (
     <MainContainer>
       <MainHeader>
         <Title>{i18n.t("campaignClients.title")}</Title>
         <MainHeaderButtonsWrapper>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => setImportModalOpen(true)}
+          >
+            Importar CSV
+          </Button>
           <Button
             variant="contained"
             color="primary"
@@ -319,6 +505,7 @@ const CampaignClients = () => {
             onChange={handleSearch}
           />
           <TextField
+            className={classes.filterInput}
             select
             size="small"
             variant="outlined"
@@ -332,6 +519,30 @@ const CampaignClients = () => {
               </MenuItem>
             ))}
           </TextField>
+          <TextField
+            className={classes.filterInput}
+            size="small"
+            variant="outlined"
+            label="Origen"
+            value={source}
+            onChange={handleTextFilter(setSource)}
+          />
+          <TextField
+            className={classes.filterInput}
+            size="small"
+            variant="outlined"
+            label="Segmento"
+            value={segment}
+            onChange={handleTextFilter(setSegment)}
+          />
+          <TextField
+            className={classes.filterInput}
+            size="small"
+            variant="outlined"
+            label="Categoria"
+            value={category}
+            onChange={handleTextFilter(setCategory)}
+          />
           <Typography variant="body2" color="textSecondary">
             {clients.length} de {count} clientes
           </Typography>
@@ -343,6 +554,8 @@ const CampaignClients = () => {
               <TableCell>{i18n.t("campaignClients.table.tradeName")}</TableCell>
               <TableCell>{i18n.t("campaignClients.table.phone")}</TableCell>
               <TableCell>Pais</TableCell>
+              <TableCell>Origen</TableCell>
+              <TableCell>Segmento</TableCell>
               <TableCell>{i18n.t("campaignClients.table.email")}</TableCell>
               <TableCell>{i18n.t("campaignClients.table.category")}</TableCell>
               <TableCell align="right">
@@ -357,6 +570,8 @@ const CampaignClients = () => {
                 <TableCell>{client.tradeName || "-"}</TableCell>
                 <TableCell>{client.phoneE164}</TableCell>
                 <TableCell>{countryLabel(client.countryCode)}</TableCell>
+                <TableCell>{client.source || "-"}</TableCell>
+                <TableCell>{client.segment || "-"}</TableCell>
                 <TableCell>{client.email || "-"}</TableCell>
                 <TableCell>{client.category || "-"}</TableCell>
                 <TableCell align="right">
@@ -404,6 +619,12 @@ const CampaignClients = () => {
         onClose={() => setClientModalOpen(false)}
         onSave={editingClient ? handleUpdate : handleCreate}
         initialData={editingClient}
+      />
+      <ImportClientsModal
+        open={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        onImport={handleImportClients}
+        loading={importLoading}
       />
     </MainContainer>
   );

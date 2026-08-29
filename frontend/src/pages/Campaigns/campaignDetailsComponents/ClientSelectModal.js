@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogTitle,
   MenuItem,
+  Typography,
   Table,
   TableBody,
   TableCell,
@@ -32,6 +33,9 @@ const ClientSelectModal = ({ open, onClose, onImport }) => {
   const [clients, setClients] = useState([]);
   const [searchParam, setSearchParam] = useState("");
   const [countryCode, setCountryCode] = useState("");
+  const [source, setSource] = useState("");
+  const [segment, setSegment] = useState("");
+  const [category, setCategory] = useState("");
   const [pageNumber, setPageNumber] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [selected, setSelected] = useState({});
@@ -42,6 +46,9 @@ const ClientSelectModal = ({ open, onClose, onImport }) => {
       setSelected({});
       setSearchParam("");
       setCountryCode("");
+      setSource("");
+      setSegment("");
+      setCategory("");
       setPageNumber(1);
       return;
     }
@@ -49,7 +56,7 @@ const ClientSelectModal = ({ open, onClose, onImport }) => {
     const fetchClients = async () => {
       try {
         const { data } = await api.get("/campaign-clients", {
-          params: { searchParam, pageNumber, countryCode }
+          params: { searchParam, pageNumber, countryCode, source, segment, category }
         });
 
         if (pageNumber === 1) {
@@ -65,7 +72,7 @@ const ClientSelectModal = ({ open, onClose, onImport }) => {
     };
 
     fetchClients();
-  }, [open, searchParam, pageNumber, countryCode]);
+  }, [open, searchParam, pageNumber, countryCode, source, segment, category]);
 
   const toggleSelected = client => {
     setSelected(prev => ({
@@ -89,6 +96,40 @@ const ClientSelectModal = ({ open, onClose, onImport }) => {
     });
   };
 
+  const resetFilterPage = setter => event => {
+    setter(event.target.value);
+    setPageNumber(1);
+    setClients([]);
+    setSelected({});
+  };
+
+  const handleSelectFilteredClients = async () => {
+    try {
+      const { data } = await api.get("/campaign-clients", {
+        params: {
+          searchParam,
+          countryCode,
+          source,
+          segment,
+          category,
+          pageNumber: "all"
+        }
+      });
+      const filteredClients = data.clients || [];
+      const nextSelected = {};
+
+      filteredClients.forEach(client => {
+        nextSelected[client.id] = client;
+      });
+
+      setClients(filteredClients);
+      setSelected(nextSelected);
+      setHasMore(false);
+    } catch (err) {
+      toastError(err);
+    }
+  };
+
   const handleImport = () => {
     const recipients = Object.values(selected)
       .filter(Boolean)
@@ -109,10 +150,7 @@ const ClientSelectModal = ({ open, onClose, onImport }) => {
           margin="dense"
           label={i18n.t("campaigns.recipients.search")}
           value={searchParam}
-          onChange={event => {
-            setSearchParam(event.target.value);
-            setPageNumber(1);
-          }}
+          onChange={resetFilterPage(setSearchParam)}
         />
         <TextField
           select
@@ -120,12 +158,7 @@ const ClientSelectModal = ({ open, onClose, onImport }) => {
           margin="dense"
           label="Pais"
           value={countryCode}
-          onChange={event => {
-            setCountryCode(event.target.value);
-            setPageNumber(1);
-            setClients([]);
-            setSelected({});
-          }}
+          onChange={resetFilterPage(setCountryCode)}
         >
           {COUNTRY_OPTIONS.map(country => (
             <MenuItem key={country.value || "all"} value={country.value}>
@@ -133,6 +166,38 @@ const ClientSelectModal = ({ open, onClose, onImport }) => {
             </MenuItem>
           ))}
         </TextField>
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Origen"
+          value={source}
+          onChange={resetFilterPage(setSource)}
+        />
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Segmento"
+          value={segment}
+          onChange={resetFilterPage(setSegment)}
+        />
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Categoria"
+          value={category}
+          onChange={resetFilterPage(setCategory)}
+        />
+        <Button
+          size="small"
+          variant="outlined"
+          color="primary"
+          onClick={handleSelectFilteredClients}
+        >
+          Seleccionar todo el filtro
+        </Button>
+        <Typography variant="caption" color="textSecondary" display="block">
+          Seleccionados: {Object.values(selected).filter(Boolean).length}
+        </Typography>
 
         <Table size="small">
           <TableHead>
@@ -148,6 +213,8 @@ const ClientSelectModal = ({ open, onClose, onImport }) => {
               <TableCell>{i18n.t("campaigns.recipients.name")}</TableCell>
               <TableCell>{i18n.t("campaigns.recipients.phone")}</TableCell>
               <TableCell>Pais</TableCell>
+              <TableCell>Origen</TableCell>
+              <TableCell>Segmento</TableCell>
               <TableCell>{i18n.t("campaigns.recipients.email")}</TableCell>
             </TableRow>
           </TableHead>
@@ -160,6 +227,8 @@ const ClientSelectModal = ({ open, onClose, onImport }) => {
                 <TableCell>{client.tradeName || client.name}</TableCell>
                 <TableCell>{client.phoneE164}</TableCell>
                 <TableCell>{countryLabel(client.countryCode)}</TableCell>
+                <TableCell>{client.source || "-"}</TableCell>
+                <TableCell>{client.segment || "-"}</TableCell>
                 <TableCell>{client.email || "-"}</TableCell>
               </TableRow>
             ))}

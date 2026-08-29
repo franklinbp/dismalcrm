@@ -12,6 +12,8 @@ interface Request {
   countryCode?: string;
   email?: string;
   category?: string;
+  source?: string;
+  segment?: string;
 }
 
 const CreateCampaignClientService = async ({
@@ -20,7 +22,9 @@ const CreateCampaignClientService = async ({
   phone,
   countryCode,
   email,
-  category
+  category,
+  source,
+  segment
 }: Request): Promise<CampaignClient> => {
   if (!name) {
     throw new AppError("Name is required", 400);
@@ -42,7 +46,9 @@ const CreateCampaignClientService = async ({
     phoneE164,
     countryCode: finalCountryCode || null,
     email: email || null,
-    category: category || null
+    category: category || null,
+    source: source || null,
+    segment: segment || null
   });
 
   return client;

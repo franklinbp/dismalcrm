@@ -13,6 +13,8 @@ interface Request {
   countryCode?: string;
   email?: string;
   category?: string;
+  source?: string;
+  segment?: string;
 }
 
 const UpdateCampaignClientService = async ({
@@ -22,7 +24,9 @@ const UpdateCampaignClientService = async ({
   phone,
   countryCode,
   email,
-  category
+  category,
+  source,
+  segment
 }: Request): Promise<CampaignClient> => {
   const client = await CampaignClient.findByPk(clientId);
   if (!client) {
@@ -50,7 +54,9 @@ const UpdateCampaignClientService = async ({
     phoneE164,
     countryCode: finalCountry,
     email: email !== undefined ? email : client.email,
-    category: category !== undefined ? category : client.category
+    category: category !== undefined ? category : client.category,
+    source: source !== undefined ? source : client.source,
+    segment: segment !== undefined ? segment : client.segment
   });
 
   return client;
